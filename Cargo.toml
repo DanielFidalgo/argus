@@ -1,0 +1,17 @@
+[package]
+name = "argus"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.49.0", features = ["full"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.22"
+
+[clippy]
+[lints.clippy]
+pedantic = { level = "allow", priority = -1 }
+nursery = { level = "allow", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+large_enum_variant = "allow"
