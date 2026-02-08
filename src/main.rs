@@ -1,5 +1,5 @@
 use crate::{
-    application::{heartbeat, routes::routes},
+    application::routes::routes,
     configuration::service_setup::{Config, HandlerFn, make_teardown, service_setup},
 };
 

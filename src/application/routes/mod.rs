@@ -1,4 +1,4 @@
-use poem::{IntoEndpoint, Route};
+use poem::{IntoEndpoint, Route, endpoint::StaticFilesEndpoint};
 use poem_openapi::OpenApiService;
 
 use crate::application::routes::{admin::admin_handler, health_check::HealthApi};
@@ -8,7 +8,8 @@ pub mod health_check;
 pub mod partials;
 
 pub fn routes() -> Route {
-    let api_service = OpenApiService::new(HealthApi, "Argus API", "0.1.0").server("/"); // paths are absolute; keep server root
+    let api_service = OpenApiService::new(HealthApi, "Argus API", "0.1.0").server("/");
+    let static_files = StaticFilesEndpoint::new("/assets"); // paths are absolute; keep server root
 
     Route::new()
         // exposes /healthz and /kaithheathcheck
@@ -21,4 +22,5 @@ pub fn routes() -> Route {
                 .at("/", poem::get(admin_handler))
                 .nest("partials", partials::routes()),
         )
+        .nest("/assets", static_files)
 }

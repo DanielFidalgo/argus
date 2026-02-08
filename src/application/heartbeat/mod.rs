@@ -4,6 +4,7 @@ use tokio::{task::JoinHandle, time::sleep};
 
 use crate::configuration::service_setup::ServiceError;
 
+#[allow(dead_code)]
 pub fn spawn() -> JoinHandle<Result<(), ServiceError>> {
     tokio::spawn(async move {
         tracing::info!("Argus heartbeat started");
