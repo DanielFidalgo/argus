@@ -1,17 +1,30 @@
-use std::time::Duration;
+use crate::{
+    application::{heartbeat, routes::routes},
+    configuration::service_setup::{Config, HandlerFn, make_teardown, service_setup},
+};
 
-use tokio::time::sleep;
-use tracing::info;
-use tracing_subscriber::FmtSubscriber;
+mod application;
+mod configuration;
+mod domain;
+mod infrastructure;
 
 #[tokio::main]
-async fn main() {
-    tracing::subscriber::set_global_default(FmtSubscriber::builder().finish())
-        .expect("setting default subscriber failed");
-    info!("Argus agent starting...");
+async fn main() -> Result<(), configuration::service_setup::ServiceError> {
+    tracing_subscriber::fmt::init();
 
-    loop {
-        info!("Hello world from Argus!");
-        sleep(Duration::from_secs(300)).await; // 5 minutes
-    }
+    let routes = routes();
+
+    let config = Config {
+        service_url: "http://0.0.0.0:8080".to_string(),
+        port: 8080,
+        routes,
+    };
+
+    let handlers: Vec<(String, HandlerFn)> = vec![("Heartbeat".into(), heartbeat::spawn())];
+
+    let teardown = vec![make_teardown(|| async move {
+        tracing::info!("teardown done");
+    })];
+
+    service_setup(config, handlers, teardown).await
 }
