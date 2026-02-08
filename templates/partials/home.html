@@ -1,0 +1,10 @@
+<p>Hello from Home!</p>
+<p class="muted">This content was loaded via HTMX partial.</p>
+
+<button
+    hx-get="/admin/partials/status"
+    hx-target="#content"
+    hx-swap="innerHTML"
+>
+    Go to Status
+</button>

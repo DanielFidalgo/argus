@@ -20,7 +20,7 @@ async fn main() -> Result<(), configuration::service_setup::ServiceError> {
         routes,
     };
 
-    let handlers: Vec<(String, HandlerFn)> = vec![("Heartbeat".into(), heartbeat::spawn())];
+    let handlers: Vec<(String, HandlerFn)> = vec![];
 
     let teardown = vec![make_teardown(|| async move {
         tracing::info!("teardown done");

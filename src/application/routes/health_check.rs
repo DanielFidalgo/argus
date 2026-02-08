@@ -21,4 +21,10 @@ impl HealthApi {
     async fn kaithhealthcheck(&self) -> PlainText<&'static str> {
         PlainText("ok")
     }
+
+    /// Leapcell healthcheck endpoint.
+    #[oai(path = "/kaithhealth", method = "get")]
+    async fn kaithhealth(&self) -> PlainText<&'static str> {
+        PlainText("ok")
+    }
 }
