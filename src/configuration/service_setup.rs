@@ -1,7 +1,8 @@
-use std::{future::Future, pin::Pin, time::Instant};
+use std::{future::Future, pin::Pin};
 
 use poem::{EndpointExt, IntoEndpoint, middleware::Tracing};
-use tokio::task::{JoinError, JoinHandle, JoinSet};
+use thiserror::Error;
+use tokio::task::{JoinError, JoinHandle};
 
 pub struct Config<E>
 where
@@ -14,10 +15,10 @@ where
 }
 
 pub type HandlerFn = JoinHandle<Result<(), ServiceError>>;
-pub type TeardownFn = Box<dyn FnOnce() -> TeardownFuture + Send>;
 pub type TeardownFuture = Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
+pub type TeardownFn = Box<dyn FnOnce() -> TeardownFuture + Send>;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum ServiceError {
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
@@ -25,52 +26,47 @@ pub enum ServiceError {
     #[error("poem error: {0}")]
     Poem(#[from] poem::Error),
 
-    #[error("signal handler error: {0}")]
-    Signal(#[source] std::io::Error),
-
     #[error("{task} failed: {source}")]
     TaskFailed {
-        task: String,
+        task: &'static str,
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     #[error("{task} join failed: {source}")]
     TaskJoin {
-        task: String,
+        task: &'static str,
         #[source]
-        source: tokio::task::JoinError,
+        source: JoinError,
     },
 }
 
 pub async fn service_setup<E>(
     config: Config<E>,
-    mut handlers: Vec<(String, HandlerFn)>,
+    mut handlers: Vec<(String, HandlerFn)>, // workers (heartbeat, scrapers, etc.)
     teardown: Vec<TeardownFn>,
 ) -> Result<(), ServiceError>
 where
     E: IntoEndpoint,
-    E::Endpoint: 'static,
+    E::Endpoint: Send + 'static,
 {
-    handlers.push(("Server".into(), server_setup(config)));
-    handlers.push(("Signals".into(), signals()));
+    // Start server + signal tasks
+    let server = server_setup(config);
+    let signals = signals();
 
-    tracing::info!(tasks = handlers.len(), "starting service");
+    tracing::info!(workers = handlers.len(), "service started");
 
-    // Run tasks concurrently; stop when the first completes (success or failure).
-    let start = Instant::now();
-    let (task, join_res) = first_finished(handlers).await;
-    tracing::info!(%task, secs = start.elapsed().as_secs(), "task finished");
+    // Wait for shutdown trigger: signals OR server exit.
+    tokio::select! {
+        res = signals => handle_join("Signals", res)?,
+        res = server  => handle_join("Server",  res)?,
+    }
 
-    match join_res {
-        Ok(Ok(())) => tracing::info!(%task, "task completed"),
-        Ok(Err(e)) => {
-            return Err(ServiceError::TaskFailed {
-                task,
-                source: Box::new(e),
-            });
-        }
-        Err(e) => return Err(ServiceError::TaskJoin { task, source: e }),
+    // We are shutting down: stop workers and run teardown
+    tracing::info!("shutting down workers");
+    for (name, h) in handlers.iter_mut() {
+        tracing::debug!(%name, "aborting");
+        h.abort();
     }
 
     tracing::info!(teardown = teardown.len(), "running teardown");
@@ -81,23 +77,18 @@ where
     Ok(())
 }
 
-async fn first_finished(
-    handlers: Vec<(String, HandlerFn)>,
-) -> (String, Result<Result<(), ServiceError>, JoinError>) {
-    let mut set = JoinSet::new();
-
-    for (task, handle) in handlers {
-        set.spawn(async move { (task, handle.await) });
+fn handle_join(
+    task: &'static str,
+    res: Result<Result<(), ServiceError>, JoinError>,
+) -> Result<(), ServiceError> {
+    match res {
+        Ok(Ok(())) => Ok(()),
+        Ok(Err(e)) => Err(ServiceError::TaskFailed {
+            task,
+            source: Box::new(e),
+        }),
+        Err(e) => Err(ServiceError::TaskJoin { task, source: e }),
     }
-
-    // If there are no tasks, return a no-op completion.
-    set.join_next()
-        .await
-        .map(|r| match r {
-            Ok(v) => v,
-            Err(e) => ("service-wrapper".into(), Err(e)),
-        })
-        .unwrap_or_else(|| ("no-tasks".into(), Ok(Ok(()))))
 }
 
 pub fn make_teardown<F, Fut>(f: F) -> TeardownFn
@@ -113,14 +104,11 @@ where
     E: IntoEndpoint,
     E::Endpoint: Send + 'static,
 {
-    // Destructure so we don't move `E` into the spawned task.
     let Config {
         service_url,
         port,
         routes,
     } = config;
-
-    // Convert to endpoint on the current thread.
     let app = routes.into_endpoint().with(Tracing);
 
     tokio::spawn(async move {
@@ -138,10 +126,9 @@ pub fn signals() -> HandlerFn {
         #[cfg(unix)]
         {
             use tokio::signal::unix::{SignalKind, signal};
-
-            let mut sigterm = signal(SignalKind::terminate()).map_err(ServiceError::Signal)?;
-            let mut sigint = signal(SignalKind::interrupt()).map_err(ServiceError::Signal)?;
-            let mut sigquit = signal(SignalKind::quit()).map_err(ServiceError::Signal)?;
+            let mut sigterm = signal(SignalKind::terminate())?;
+            let mut sigint = signal(SignalKind::interrupt())?;
+            let mut sigquit = signal(SignalKind::quit())?;
 
             tokio::select! {
                 _ = sigterm.recv() => tracing::info!("Received SIGTERM"),
@@ -152,9 +139,7 @@ pub fn signals() -> HandlerFn {
 
         #[cfg(not(unix))]
         {
-            tokio::signal::ctrl_c().await.map_err(|e| {
-                ServiceError::Signal(std::io::Error::new(std::io::ErrorKind::Other, e))
-            })?;
+            tokio::signal::ctrl_c().await?;
             tracing::info!("Received Ctrl-C");
         }
 
