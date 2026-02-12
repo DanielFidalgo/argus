@@ -1,0 +1,416 @@
+/* ==========================================================================
+   Admin One — Responsive Collapsible Sidebar Layout
+   ========================================================================== */
+
+/* Root Theme Variables — Light Theme */
+:root {
+    /* Sidebar */
+    --bg-sidebar: #f5f5f5;
+    --text-sidebar: #363636;
+    --bg-sidebar-hover: #e5e5e5;
+    --text-sidebar-hover: #000;
+
+    /* Navbar */
+    --bg-nav: #fff;
+    --text-nav: #363636;
+    --bg-nav-hover: #f0f0f0;
+
+    /* Main Content */
+    --bg-content: #fff;
+    --text-content: #363636;
+
+    /* Footer */
+    --bg-footer: #f5f5f5;
+    --text-footer: #363636;
+
+    /* Cards */
+    --card-bg: #fff;
+    --card-border: #ddd;
+    --card-shadow: rgba(10, 10, 10, 0.1);
+
+    /* Sidebar widths */
+    --sidebar-width: 230px;
+    --sidebar-width-collapsed: 60px;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    /* Sidebar */
+    --bg-sidebar: #2c2c2c;
+    --text-sidebar: #ddd;
+    --bg-sidebar-hover: #3b3b3b;
+    --text-sidebar-hover: #fff;
+
+    /* Navbar */
+    --bg-nav: #222;
+    --text-nav: #eee;
+    --bg-nav-hover: #333;
+
+    /* Main Content */
+    --bg-content: #121315;
+    --text-content: #ddd;
+
+    /* Footer */
+    --bg-footer: #1e1e22;
+    --text-footer: #ccc;
+
+    /* Cards */
+    --card-bg: #1a1a1f;
+    --card-border: #333;
+    --card-shadow: rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   Global Base
+   ======================================== */
+body,
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-content);
+    color: var(--text-content);
+    overflow: hidden;
+}
+
+/* App wrapper */
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 95%;
+}
+
+/* ----------------------------------------
+   Sidebar - Desktop Full Width
+   ---------------------------------------- */
+.admin-sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-sidebar);
+    color: var(--text-sidebar);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 30;
+    padding: 1rem 0;
+    transition:
+        width 0.3s ease,
+        transform 0.3s ease;
+}
+
+/* Sidebar header */
+.admin-sidebar .aside-tools {
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.admin-sidebar .menu-label {
+    color: var(--text-sidebar);
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.admin-sidebar .menu-list a {
+    color: var(--text-sidebar);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.admin-sidebar .menu-list a .icon {
+    min-width: 28px;
+    margin-right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-sidebar .menu-list a .menu-item-label {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.admin-sidebar .menu-list a:hover,
+.admin-sidebar .menu-list a.is-active {
+    background: var(--bg-sidebar-hover);
+    color: var(--text-sidebar-hover);
+}
+
+/* Toggle button in sidebar */
+.sidebar-toggle {
+    position: absolute;
+    top: 1rem;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 31;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px var(--card-shadow);
+    padding: 0;
+    outline: none;
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-sidebar-hover);
+    transform: scale(1.1);
+}
+
+.sidebar-toggle:focus {
+    outline: 2px solid var(--text-sidebar);
+    outline-offset: 2px;
+}
+
+.sidebar-toggle .icon {
+    color: var(--text-sidebar);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toggle .icon .mdi {
+    transition: transform 0.3s ease;
+}
+
+/* ----------------------------------------
+   Sidebar - Collapsed State (Desktop)
+   ---------------------------------------- */
+.admin-sidebar.is-collapsed {
+    width: var(--sidebar-width-collapsed);
+}
+
+.admin-sidebar.is-collapsed .aside-tools span,
+.admin-sidebar.is-collapsed .menu-label,
+.admin-sidebar.is-collapsed .menu-item-label {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.admin-sidebar.is-collapsed .menu-list a {
+    justify-content: center;
+    padding: 0.75rem 0;
+}
+
+.admin-sidebar.is-collapsed .menu-list a .icon {
+    margin-right: 0;
+}
+
+/* ----------------------------------------
+   Navbar
+   ---------------------------------------- */
+.admin-navbar {
+    background: var(--bg-nav);
+    color: var(--text-nav);
+    margin-left: var(--sidebar-width);
+    border-bottom: 1px solid var(--card-border);
+    z-index: 25;
+    transition: margin-left 0.3s ease;
+}
+
+/* When sidebar is collapsed */
+.admin-sidebar.is-collapsed ~ .admin-navbar,
+.admin-sidebar.is-collapsed ~ .admin-content {
+    margin-left: var(--sidebar-width-collapsed);
+}
+
+/* Mobile menu toggle button */
+.jb-aside-mobile-toggle {
+    cursor: pointer;
+}
+
+.jb-aside-mobile-toggle .icon {
+    font-size: 1.5rem;
+}
+
+/* Navbar Items */
+.admin-navbar .navbar-item,
+.admin-navbar .navbar-link {
+    color: var(--text-nav);
+}
+
+.admin-navbar .navbar-item:hover,
+.admin-navbar .navbar-link:hover {
+    background: var(--bg-nav-hover);
+}
+
+/* Search Field */
+.admin-navbar input.input {
+    border: none !important;
+    box-shadow: none !important;
+    background: var(--bg-nav) !important;
+    color: var(--text-nav) !important;
+}
+
+.admin-navbar input.input:focus {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* ----------------------------------------
+   Main Content
+   ---------------------------------------- */
+.admin-content {
+    margin-left: var(--sidebar-width);
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0;
+    transition: margin-left 0.3s ease;
+}
+
+.admin-content .main {
+    width: 100%;
+    padding: 1rem 1rem 0.5rem 1rem;
+}
+
+.admin-content .section {
+    width: 100%;
+    padding: 1rem 1rem 0.5rem 1rem;
+}
+
+/* ----------------------------------------
+   Footer
+   ---------------------------------------- */
+footer.footer {
+    background: var(--bg-footer);
+    color: var(--text-footer);
+    border-top: 1px solid var(--card-border);
+    margin-top: auto;
+    width: 100%;
+    padding: 0 0 0 0 !important;
+    font-size: 0.9rem;
+    height: 85px;
+}
+
+footer.footer div.content {
+    padding: 0rem 3rem 0rem 3rem;
+}
+
+/* ----------------------------------------
+   Cards / Panels
+   ---------------------------------------- */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 1px 4px var(--card-shadow);
+}
+
+/* Forms & Inputs */
+input.input,
+textarea.textarea,
+select.select select {
+    border-color: var(--card-border);
+}
+
+input.input:focus,
+textarea.textarea:focus {
+    box-shadow: none;
+    border-color: var(--text-nav);
+}
+
+/* Tables */
+table.table thead th {
+    background: var(--bg-sidebar-hover);
+    color: var(--text-sidebar-hover);
+}
+
+/* Buttons */
+.button.is-primary {
+    background-color: #3273dc;
+    border-color: #3273dc;
+    color: #fff;
+}
+
+/* Spacing utilities */
+.section {
+    padding: 1.5rem 0;
+}
+
+/* ----------------------------------------
+   Mobile Overlay
+   ---------------------------------------- */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 29;
+}
+
+/* ========================================
+   RESPONSIVE - TABLET AND MOBILE
+   ======================================== */
+
+/* Tablet */
+@media (max-width: 1023px) {
+    .sidebar-toggle {
+        display: none !important;
+    }
+
+    .admin-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .admin-sidebar.is-mobile-active {
+        transform: translateX(0);
+    }
+
+    .admin-sidebar.is-mobile-active ~ .sidebar-overlay {
+        display: block;
+    }
+
+    .admin-navbar,
+    .admin-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .admin-navbar .navbar-item.has-control {
+        display: none;
+    }
+
+    footer.footer div.content {
+        padding: 0rem 1rem;
+    }
+
+    .admin-content .main,
+    .admin-content .section {
+        padding: 0.75rem;
+    }
+
+    /* Hide desktop-only navbar items */
+    .is-hidden-mobile {
+        display: none !important;
+    }
+}
+
+/* Desktop only - show collapse button */
+@media (min-width: 1024px) {
+    .jb-aside-mobile-toggle {
+        display: none !important;
+    }
+
+    .sidebar-toggle {
+        display: flex !important;
+    }
+}

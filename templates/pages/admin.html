@@ -1,0 +1,152 @@
+{% extends "partials/layout.html" %} {% block title %}
+<div class="level">
+    <div class="level-left">
+        <div class="level-item">
+            <div class="title">
+                <h1 class="title">Argus Admin</h1>
+                <p class="subtitle is-size-7 has-text-grey">
+                    Administration Dashboard
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block hero %}
+<div class="hero-body">
+    <div class="level">
+        <div class="level-left">
+            <div class="level-item">
+                <h1 class="title">Welcome to Argus</h1>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block content %}
+<div class="notification is-primary is-light">
+    <p class="title is-5">👋 Welcome to the Argus Admin Panel!</p>
+    <p>
+        Use the sidebar navigation to explore different sections of the
+        application.
+    </p>
+</div>
+
+<div class="columns mt-5">
+    <div class="column">
+        <div class="card">
+            <header class="card-header">
+                <p class="card-header-title">
+                    <span class="icon"
+                        ><i class="mdi mdi-rocket-launch"></i
+                    ></span>
+                    <span>Quick Start</span>
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <p>
+                        Get started by navigating to one of the available
+                        sections:
+                    </p>
+                    <div class="buttons mt-4">
+                        <button
+                            class="button is-primary"
+                            hx-get="/admin/pages/home"
+                            hx-target="#content"
+                            hx-swap="innerHTML"
+                        >
+                            <span class="icon"
+                                ><i class="mdi mdi-home"></i
+                            ></span>
+                            <span>Dashboard</span>
+                        </button>
+                        <button
+                            class="button is-info"
+                            hx-get="/admin/pages/status"
+                            hx-target="#content"
+                            hx-swap="innerHTML"
+                        >
+                            <span class="icon"
+                                ><i class="mdi mdi-desktop-mac"></i
+                            ></span>
+                            <span>System Status</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="column">
+        <div class="card">
+            <header class="card-header">
+                <p class="card-header-title">
+                    <span class="icon"
+                        ><i class="mdi mdi-feature-search"></i
+                    ></span>
+                    <span>Features</span>
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <ul>
+                        <li>
+                            📱 <strong>Responsive Design</strong> - Works on
+                            desktop, tablet, and mobile
+                        </li>
+                        <li>
+                            🎨 <strong>Dark/Light Mode</strong> - Toggle theme
+                            with the button in navbar
+                        </li>
+                        <li>
+                            📊 <strong>Health Monitoring</strong> - Track system
+                            status and uptime
+                        </li>
+                        <li>
+                            🔄 <strong>HTMX Powered</strong> - Fast, dynamic
+                            page updates
+                        </li>
+                        <li>
+                            📚 <strong>API Documentation</strong> - Swagger UI
+                            available at /docs
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-5">
+    <header class="card-header">
+        <p class="card-header-title">
+            <span class="icon"
+                ><i class="mdi mdi-information-outline"></i
+            ></span>
+            <span>About Argus</span>
+        </p>
+    </header>
+    <div class="card-content">
+        <div class="content">
+            <div class="columns">
+                <div class="column">
+                    <p><strong>Version:</strong> 0.1.0</p>
+                    <p><strong>Framework:</strong> Poem (Rust)</p>
+                    <p><strong>Template Engine:</strong> Askama</p>
+                </div>
+                <div class="column">
+                    <p><strong>Runtime:</strong> Tokio Async</p>
+                    <p><strong>API Documentation:</strong> OpenAPI/Swagger</p>
+                    <p><strong>UI Framework:</strong> Bulma CSS</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="notification is-info is-light mt-5">
+    <p>
+        <strong>💡 Tip:</strong> Try resizing your browser or opening this on a
+        mobile device to see the responsive sidebar in action!
+    </p>
+</div>
+{% endblock %}

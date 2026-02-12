@@ -1,0 +1,197 @@
+{% block title %}
+<div class="level">
+    <div class="level-left">
+        <div class="level-item">
+            <div class="title">
+                <h1 class="title">Dashboard</h1>
+                <p class="subtitle is-size-7 has-text-grey">
+                    Welcome to Argus Admin
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block hero %}
+<div class="hero-body">
+    <div class="level">
+        <div class="level-left">
+            <div class="level-item">
+                <h1 class="title">Home</h1>
+            </div>
+        </div>
+        <div class="level-right">
+            <div class="level-item">
+                <button
+                    class="button is-primary"
+                    hx-get="/admin/pages/status"
+                    hx-target="#content"
+                    hx-swap="innerHTML"
+                >
+                    <span class="icon"
+                        ><i class="mdi mdi-desktop-mac"></i
+                    ></span>
+                    <span>View Status</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block content %}
+<div class="tile is-ancestor">
+    <div class="tile is-parent">
+        <div class="card tile is-child">
+            <header class="card-header">
+                <p class="card-header-title">
+                    <span class="icon"
+                        ><i class="mdi mdi-monitor-dashboard"></i
+                    ></span>
+                    <span>Quick Stats</span>
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <div class="columns is-multiline">
+                        <div class="column is-6">
+                            <div class="box has-text-centered">
+                                <p class="heading">Services</p>
+                                <p class="title is-4">4</p>
+                            </div>
+                        </div>
+                        <div class="column is-6">
+                            <div class="box has-text-centered">
+                                <p class="heading">Status</p>
+                                <p class="title is-4 has-text-success">
+                                    Online
+                                </p>
+                            </div>
+                        </div>
+                        <div class="column is-6">
+                            <div class="box has-text-centered">
+                                <p class="heading">Uptime</p>
+                                <p class="title is-4">99.9%</p>
+                            </div>
+                        </div>
+                        <div class="column is-6">
+                            <div class="box has-text-centered">
+                                <p class="heading">Requests</p>
+                                <p class="title is-4">1.2K</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tile is-parent">
+        <div class="card tile is-child">
+            <header class="card-header">
+                <p class="card-header-title">
+                    <span class="icon"
+                        ><i class="mdi mdi-information"></i
+                    ></span>
+                    <span>System Info</span>
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <div class="field">
+                        <label class="label">Service Name</label>
+                        <div class="control">
+                            <p><strong>Argus</strong></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Version</label>
+                        <div class="control">
+                            <p>0.1.0</p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Environment</label>
+                        <div class="control">
+                            <span class="tag is-info">Development</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Framework</label>
+                        <div class="control">
+                            <p>Poem + Askama</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <header class="card-header">
+        <p class="card-header-title">
+            <span class="icon"><i class="mdi mdi-chart-line"></i></span>
+            <span>Recent Activity</span>
+        </p>
+    </header>
+    <div class="card-content">
+        <div class="content">
+            <div class="table-container">
+                <table class="table is-fullwidth is-striped">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="icon"
+                                    ><i
+                                        class="mdi mdi-check-circle has-text-success"
+                                    ></i
+                                ></span>
+                                Service Started
+                            </td>
+                            <td><span class="tag is-success">Success</span></td>
+                            <td>2 minutes ago</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="icon"
+                                    ><i
+                                        class="mdi mdi-check-circle has-text-success"
+                                    ></i
+                                ></span>
+                                Health Check Passed
+                            </td>
+                            <td><span class="tag is-success">Success</span></td>
+                            <td>5 minutes ago</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="icon"
+                                    ><i
+                                        class="mdi mdi-information has-text-info"
+                                    ></i
+                                ></span>
+                                Configuration Updated
+                            </td>
+                            <td><span class="tag is-info">Info</span></td>
+                            <td>1 hour ago</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="notification is-info is-light mt-5">
+    <p>
+        <strong>Responsive Design:</strong> Try resizing your browser window or
+        viewing on mobile. The sidebar will automatically collapse or hide based
+        on screen size!
+    </p>
+</div>
+{% endblock %}

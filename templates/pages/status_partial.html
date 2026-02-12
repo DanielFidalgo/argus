@@ -1,0 +1,244 @@
+<div class="columns">
+    <div class="column is-6">
+        <div class="card">
+            <header class="card-header has-background-success-light">
+                <p class="card-header-title">
+                    <span class="icon has-text-success"
+                        ><i class="mdi mdi-heart-pulse"></i
+                    ></span>
+                    <span>Heartbeat Status</span>
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Status:</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <span class="tag is-success is-large"
+                                        >{{ heartbeat }}</span
+                                    >
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Last Check:</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <span>Just now</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Interval:</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <span>5 minutes</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="column is-6">
+        <div class="card">
+            <header class="card-header has-background-info-light">
+                <p class="card-header-title">
+                    <span class="icon has-text-info"
+                        ><i class="mdi mdi-cog"></i
+                    ></span>
+                    <span>Service Information</span>
+                </p>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Name:</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <strong>{{ service }}</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Version:</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <span>0.1.0</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Runtime:</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <p class="control">
+                                    <span>Tokio Async</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-5">
+    <header class="card-header">
+        <p class="card-header-title">
+            <span class="icon"><i class="mdi mdi-server"></i></span>
+            <span>Service Health Checks</span>
+        </p>
+    </header>
+    <div class="card-content">
+        <div class="content">
+            <div class="table-container">
+                <table class="table is-fullwidth is-hoverable">
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Status</th>
+                            <th>Response Time</th>
+                            <th>Last Check</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="icon-text">
+                                    <span class="icon"
+                                        ><i
+                                            class="mdi mdi-check-circle has-text-success"
+                                        ></i
+                                    ></span>
+                                    <span>/healthz</span>
+                                </span>
+                            </td>
+                            <td><span class="tag is-success">Healthy</span></td>
+                            <td>2ms</td>
+                            <td>1 second ago</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="icon-text">
+                                    <span class="icon"
+                                        ><i
+                                            class="mdi mdi-check-circle has-text-success"
+                                        ></i
+                                    ></span>
+                                    <span>/kaithheathcheck</span>
+                                </span>
+                            </td>
+                            <td><span class="tag is-success">Healthy</span></td>
+                            <td>1ms</td>
+                            <td>1 second ago</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="icon-text">
+                                    <span class="icon"
+                                        ><i
+                                            class="mdi mdi-check-circle has-text-success"
+                                        ></i
+                                    ></span>
+                                    <span>/kaithhealthcheck</span>
+                                </span>
+                            </td>
+                            <td><span class="tag is-success">Healthy</span></td>
+                            <td>1ms</td>
+                            <td>1 second ago</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="icon-text">
+                                    <span class="icon"
+                                        ><i
+                                            class="mdi mdi-check-circle has-text-success"
+                                        ></i
+                                    ></span>
+                                    <span>/kaithhealth</span>
+                                </span>
+                            </td>
+                            <td><span class="tag is-success">Healthy</span></td>
+                            <td>2ms</td>
+                            <td>1 second ago</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="columns mt-5">
+    <div class="column">
+        <div class="notification is-success is-light">
+            <p class="heading">System Status</p>
+            <p class="title is-4">All Systems Operational</p>
+            <p></p>All services are running normally with no reported issues.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-5">
+    <header class="card-header">
+        <p class="card-header-title">
+            <span class="icon"><i class="mdi mdi-information"></i></span>
+            <span>Quick Actions</span>
+        </p>
+    </header>
+    <div class="card-content">
+        <div class="content">
+            <div class="buttons">
+                <button
+                    class="button is-info"
+                    hx-get="/admin/pages/home"
+                    hx-target="#content"
+                    hx-swap="innerHTML"
+                >
+                    <span class="icon"><i class="mdi mdi-home"></i></span>
+                    <span>Back to Home</span>
+                </button>
+                <button
+                    class="button is-light"
+                    onclick="window.open('/docs', '_blank')"
+                >
+                    <span class="icon"><i class="mdi mdi-book-open"></i></span>
+                    <span>API Documentation</span>
+                </button>
+                <button
+                    class="button is-light"
+                    onclick="location.reload()"
+                >
+                    <span class="icon"><i class="mdi mdi-refresh"></i></span>
+                    <span>Refresh Status</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

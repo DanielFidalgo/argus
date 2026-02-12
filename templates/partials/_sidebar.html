@@ -1,0 +1,46 @@
+<aside class="menu admin-sidebar" id="admin-sidebar" data-sidebar>
+    <!-- Collapse/Expand Toggle Button (Desktop only) -->
+    <button
+        class="sidebar-toggle"
+        id="sidebar-toggle"
+        type="button"
+        aria-label="Toggle Sidebar"
+        title="Toggle Sidebar"
+    >
+        <span class="icon">
+            <i class="mdi mdi-chevron-left" id="sidebar-toggle-icon"></i>
+        </span>
+    </button>
+
+    <div class="aside-tools">
+        <div class="menu-label">
+            <span></span><b>Argus</b> Admin</span>
+        </div>
+    </div>
+
+    <div class="menu is-menu-main">
+        <p class="menu-label">General</p>
+        <ul class="menu-list">
+            {% for item in base.nav_items %}
+            <li>
+                <a
+                    hx-get="{{ item.href }}"
+                    hx-target="#content"
+                    hx-swap="innerHTML"
+                    data-nav-link
+                    data-href="{{ item.href }}"
+                    class="{% if item.href == base.current_path %}is-active router-link-active{% endif %} has-icon"
+                    role="button"
+                    tabindex="0"
+                >
+                    <span class="icon"><i class="mdi {{item.icon}}"></i></span>
+                    <span class="menu-item-label">{{ item.label }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</aside>
+
+<!-- Overlay for mobile sidebar (shown when sidebar is open on mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>

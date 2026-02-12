@@ -1,0 +1,15 @@
+<body>
+    {% include "_sidebar.html" %} {% include "_navbar.html" %}
+    <div id="app" class="admin-content">
+        <section class="section is-title-bar">
+            {% block title %}{% endblock %}
+        </section>
+        <section class="hero is-hero-bar">
+            {% block hero %}{% endblock %}
+        </section>
+        <section id="content" class="main section is-main-section">
+            {% block content %}{% endblock %}
+        </section>
+        {% include "_footer.html" %}
+    </div>
+</body>
