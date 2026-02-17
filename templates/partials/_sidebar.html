@@ -1,35 +1,42 @@
-<aside class="menu admin-sidebar" id="admin-sidebar" data-sidebar>
-    <!-- Collapse/Expand Toggle Button (Desktop only) -->
+<aside
+    class="menu admin-sidebar"
+    id="admin-sidebar"
+    :class="{
+        'is-collapsed': $store.sidebar.collapsed,
+        'is-mobile-active': $store.sidebar.mobileOpen
+    }"
+>
+    <!-- Mobile Toggle Button -->
     <button
-        class="sidebar-toggle"
-        id="sidebar-toggle"
+        class="sidebar-toggle-mobile is-hidden-desktop"
+        @click="$store.sidebar.toggleMobile()"
         type="button"
-        aria-label="Toggle Sidebar"
-        title="Toggle Sidebar"
+        aria-label="Toggle mobile sidebar"
     >
-        <span class="icon">
-            <i class="mdi mdi-chevron-left" id="sidebar-toggle-icon"></i>
-        </span>
+        <i
+            class="mdi"
+            :class="$store.sidebar.mobileOpen ? 'mdi-backburger' : 'mdi-forwardburger'"
+        ></i>
     </button>
 
-    <div class="aside-tools">
+    <div class="aside-tools is-hidden-mobile">
         <div class="menu-label">
-            <span></span><b>Argus</b> Admin</span>
+            <span><b>Argus</b> Admin</span>
         </div>
     </div>
 
     <div class="menu is-menu-main">
         <p class="menu-label">General</p>
         <ul class="menu-list">
-            {% for item in base.nav_items %}
+            {% for item in base.sidebar_items %}
             <li>
                 <a
                     hx-get="{{ item.href }}"
                     hx-target="#content"
                     hx-swap="innerHTML"
-                    data-nav-link
-                    data-href="{{ item.href }}"
-                    class="{% if item.href == base.current_path %}is-active router-link-active{% endif %} has-icon"
+                    @click="$store.sidebar.closeMobile()"
+                    :class="$store.nav.isActive('{{ item.href }}') ? 'is-active router-link-active' : ''"
+                    class="has-icon"
                     role="button"
                     tabindex="0"
                 >
@@ -42,5 +49,16 @@
     </div>
 </aside>
 
-<!-- Overlay for mobile sidebar (shown when sidebar is open on mobile) -->
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<!-- Overlay for mobile sidebar -->
+<div
+    class="sidebar-overlay"
+    x-show="$store.sidebar.mobileOpen"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    @click="$store.sidebar.closeMobile()"
+    style="display: none"
+></div>

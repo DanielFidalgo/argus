@@ -1,32 +1,52 @@
 <nav id="navbar-main" class="navbar admin-navbar">
     <div class="navbar-brand">
         <!-- Mobile Sidebar Toggle -->
-        <a class="navbar-item is-hidden-desktop jb-aside-mobile-toggle">
+        <a
+            class="navbar-item is-hidden-desktop"
+            @click="$store.sidebar.toggleMobile()"
+            role="button"
+            tabindex="0"
+        >
             <span class="icon">
-                <i class="mdi mdi-forwardburger mdi-24px"></i>
+                <i
+                    class="mdi mdi-24px"
+                    :class="$store.sidebar.mobileOpen ? 'mdi-backburger' : 'mdi-forwardburger'"
+                ></i>
             </span>
         </a>
+        <div id="mobile-title" class="navbar-item is-hidden-desktop">
+            <p>My App</p>
+        </div>
         <!-- Search Bar (Hidden on Mobile) -->
         <div class="navbar-item has-control">
             <div class="control">
-                <input placeholder="Search everywhere..." class="input" />
+                <!--input placeholder="Search everywhere..." class="input" /-->
             </div>
         </div>
-    </div>
-    <div class="navbar-brand is-right">
         <a
-            class="navbar-item is-hidden-desktop jb-navbar-menu-toggle"
-            data-target="navbar-menu"
+            class="navbar-item is-hidden-desktop"
+            @click="$store.nav.menuOpen = !$store.nav.menuOpen"
+            role="button"
+            tabindex="0"
+            :aria-expanded="$store.nav.menuOpen"
         >
             <span class="icon"><i class="mdi mdi-dots-vertical"></i></span>
         </a>
     </div>
-    <div class="navbar-menu fadeIn animated faster" id="navbar-menu">
+    <div class="navbar-menu" :class="{ 'is-active': $store.nav.menuOpen }">
         <div class="navbar-end">
             <div
-                class="navbar-item has-dropdown has-dropdown-with-icons has-divider is-hoverable"
+                class="navbar-item has-dropdown has-dropdown-with-icons has-divider"
+                x-data="{ open: false }"
+                @click.away="open = false"
+                :class="{ 'is-active': open }"
             >
-                <a class="navbar-link is-arrowless">
+                <a
+                    class="navbar-link is-arrowless"
+                    @click="open = !open"
+                    role="button"
+                    tabindex="0"
+                >
                     <span class="icon"><i class="mdi mdi-menu"></i></span>
                     <span>Menu</span>
                     <span class="icon">
@@ -58,9 +78,17 @@
                 </div>
             </div>
             <div
-                class="navbar-item has-dropdown has-dropdown-with-icons has-divider has-user-avatar is-hoverable"
+                class="navbar-item has-dropdown has-dropdown-with-icons has-divider has-user-avatar"
+                x-data="{ open: false }"
+                @click.away="open = false"
+                :class="{ 'is-active': open }"
             >
-                <a class="navbar-link is-arrowless">
+                <a
+                    class="navbar-link is-arrowless"
+                    @click="open = !open"
+                    role="button"
+                    tabindex="0"
+                >
                     <div class="is-user-avatar">
                         <img
                             src="https://api.dicebear.com/9.x/pixel-art/svg"
@@ -97,7 +125,12 @@
                 </div>
             </div>
             <!-- Theme Toggle -->
-            <a class="navbar-item" id="theme-toggler" title="Toggle Light/Dark">
+            <a
+                class="navbar-item"
+                @click="$store.theme.toggle()"
+                role="button"
+                tabindex="0"
+            >
                 <span class="icon">
                     <i class="mdi mdi-theme-light-dark"></i>
                 </span>

@@ -4,32 +4,52 @@ use chrono::{Datelike, Local};
 use poem::{IntoResponse, Request, Response, handler, http::StatusCode};
 
 /// navigation item
-pub struct NavItem {
+pub struct SidebarItem {
+    pub label: &'static str,
+    pub href: &'static str,
+    pub icon: &'static str,
+}
+
+#[allow(dead_code)]
+pub struct NavbarItem {
     pub label: &'static str,
     pub href: &'static str,
     pub icon: &'static str,
 }
 
 /// global template context
+#[allow(dead_code)]
 pub struct BaseTemplateContext {
     year: i32,
-    current_path: String,
-    nav_items: Vec<NavItem>,
+    sidebar_items: Vec<SidebarItem>,
+    navbar_items: Vec<NavbarItem>,
 }
 
 /// build shared context from request
-fn make_base_context(req: &Request) -> BaseTemplateContext {
+fn make_base_context() -> BaseTemplateContext {
     let now = Local::now();
-    let current_path = req.uri().path().to_string();
 
     // nav list
-    let nav_items = vec![
-        NavItem {
+    let sidebar_items = vec![
+        SidebarItem {
             label: "Home",
             href: "/admin/pages/home",
             icon: "mdi-home",
         },
-        NavItem {
+        SidebarItem {
+            label: "Status",
+            href: "/admin/pages/status",
+            icon: "mdi-desktop-mac",
+        },
+    ];
+
+    let navbar_items = vec![
+        NavbarItem {
+            label: "Home",
+            href: "/admin/pages/home",
+            icon: "mdi-home",
+        },
+        NavbarItem {
             label: "Status",
             href: "/admin/pages/status",
             icon: "mdi-desktop-mac",
@@ -38,8 +58,8 @@ fn make_base_context(req: &Request) -> BaseTemplateContext {
 
     BaseTemplateContext {
         year: now.year(),
-        current_path,
-        nav_items,
+        sidebar_items,
+        navbar_items,
     }
 }
 
@@ -97,8 +117,8 @@ pub struct StatusPartialTmpl {
 //
 
 #[handler]
-pub async fn admin_handler(req: &Request) -> impl IntoResponse {
-    let base = make_base_context(req);
+pub async fn admin_handler(_req: &Request) -> impl IntoResponse {
+    let base = make_base_context();
     AdminTmpl { base }
 }
 
@@ -119,7 +139,7 @@ pub async fn home(req: &Request) -> Response {
     } else {
         // Direct access - return full page with layout
         let template = HomeTmpl {
-            _base: make_base_context(req),
+            _base: make_base_context(),
         };
         match template.render() {
             Ok(html) => Response::builder()
@@ -156,7 +176,7 @@ pub async fn status(req: &Request) -> Response {
     } else {
         // Direct access - return full page with layout
         let template = StatusTmpl {
-            _base: make_base_context(req),
+            _base: make_base_context(),
             heartbeat,
             service,
         };

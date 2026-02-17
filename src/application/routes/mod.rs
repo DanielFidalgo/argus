@@ -1,4 +1,4 @@
-use poem::{IntoEndpoint, Route, endpoint::StaticFilesEndpoint};
+use poem::{IntoEndpoint, Route, endpoint::StaticFilesEndpoint, get, handler, web::Redirect};
 use poem_openapi::OpenApiService;
 
 use crate::application::routes::health_check::HealthApi;
@@ -13,10 +13,16 @@ pub fn routes() -> Route {
 
     Route::new()
         // exposes /healthz and /kaithheathcheck
+        .nest("/", get(root))
         .nest("/docs", api_service.scalar()) // Swagger UI at /docs
         .nest("/openapi", api_service.spec_endpoint())
-        .nest("/", api_service.into_endpoint())
+        .nest("/api", api_service.into_endpoint())
         .nest("/admin", admin::routes())
         .nest("/assets", asset_files)
         .nest("/static", static_files)
+}
+
+#[handler]
+fn root() -> Redirect {
+    Redirect::permanent("/admin")
 }
