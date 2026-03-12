@@ -1,0 +1,395 @@
+<div id="scanner-container">
+    <!-- Header -->
+    <div class="card mb-4">
+        <header class="card-header">
+            <p class="card-header-title">
+                <span class="icon"><i class="mdi mdi-qrcode-scan"></i></span>
+                <span>AR Barcode Scanner</span>
+            </p>
+        </header>
+        <div class="card-content">
+            <div class="level is-mobile">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span id="scanner-status" class="tag is-warning is-medium">
+                            <span class="icon"><i class="mdi mdi-camera-off"></i></span>
+                            <span>Camera Inactive</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <div class="buttons are-small">
+                            <button id="btn-start" class="button is-primary" onclick="scannerStart()">
+                                <span class="icon"><i class="mdi mdi-play"></i></span>
+                                <span>Start</span>
+                            </button>
+                            <button id="btn-stop" class="button is-danger is-light" style="display:none" onclick="scannerStop()">
+                                <span class="icon"><i class="mdi mdi-stop"></i></span>
+                                <span>Stop</span>
+                            </button>
+                            <button id="btn-flip" class="button is-info is-light" style="display:none" onclick="scannerFlip()">
+                                <span class="icon"><i class="mdi mdi-camera-flip-outline"></i></span>
+                                <span>Flip</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Shown only when camera cannot start -->
+            <div id="scanner-error" class="notification is-danger is-light is-size-7 mt-2" style="display:none"></div>
+        </div>
+    </div>
+
+    <!-- Camera Viewport -->
+    <div class="card mb-4">
+        <div class="card-content p-0" style="overflow:hidden; border-radius:0 0 6px 6px;">
+            <div id="scanner-viewport" style="position:relative; background:#111; min-height:280px; display:flex; align-items:center; justify-content:center;">
+                <!-- Hidden video: ZXing / getUserMedia writes here; we blit it to canvas each frame -->
+                <video id="scanner-video" autoplay playsinline muted style="display:none;"></video>
+
+                <!-- AR canvas: the only visible layer -->
+                <canvas id="scanner-canvas" style="width:100%; display:block;"></canvas>
+
+                <!-- Inactive placeholder -->
+                <div id="scanner-placeholder" style="position:absolute; text-align:center; color:rgba(255,255,255,0.4); padding:2rem; pointer-events:none;">
+                    <i class="mdi mdi-camera-outline" style="font-size:4rem;"></i>
+                    <p class="mt-2 is-size-7">Press Start to activate camera</p>
+                </div>
+
+                <!-- AR targeting brackets (CSS layer, above canvas) -->
+                <div id="scanner-brackets" style="display:none; position:absolute; width:55%; max-width:220px; height:45%; max-height:160px; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none;">
+                    <span style="position:absolute;top:0;left:0;width:20px;height:20px;border-top:3px solid #00e5ff;border-left:3px solid #00e5ff;"></span>
+                    <span style="position:absolute;top:0;right:0;width:20px;height:20px;border-top:3px solid #00e5ff;border-right:3px solid #00e5ff;"></span>
+                    <span style="position:absolute;bottom:0;left:0;width:20px;height:20px;border-bottom:3px solid #00e5ff;border-left:3px solid #00e5ff;"></span>
+                    <span style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-bottom:3px solid #00e5ff;border-right:3px solid #00e5ff;"></span>
+                    <div style="position:absolute;left:4px;right:4px;height:2px;background:linear-gradient(90deg,transparent,#00e5ff,transparent);animation:scanline 2s ease-in-out infinite;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="card">
+        <header class="card-header">
+            <p class="card-header-title">
+                <span class="icon"><i class="mdi mdi-format-list-bulleted"></i></span>
+                <span>Scan Results</span>
+                <span id="results-count" class="tag is-light ml-2" style="display:none">0</span>
+            </p>
+            <div class="card-header-icon">
+                <button class="button is-small is-light" onclick="scannerClearResults()">
+                    <span class="icon"><i class="mdi mdi-delete-sweep"></i></span>
+                    <span>Clear</span>
+                </button>
+            </div>
+        </header>
+        <div class="card-content">
+            <div id="scanner-results">
+                <p class="has-text-grey has-text-centered is-size-7">No barcodes scanned yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes scanline {
+    0%,100% { top: 8%;  }
+    50%      { top: 88%; }
+}
+@keyframes scanner-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(0,229,255,0.7); }
+    70%  { box-shadow: 0 0 0 12px rgba(0,229,255,0);   }
+    100% { box-shadow: 0 0 0 0   rgba(0,229,255,0);   }
+}
+.scanner-pulse { animation: scanner-pulse 0.4s ease-out; }
+</style>
+
+<script>
+(function () {
+    /* ── state ─────────────────────────────────────────────── */
+    var S = {
+        scanning:  false,
+        stream:    null,
+        rafId:     null,
+        reader:    null,   /* ZXing.MultiFormatReader */
+        results:   [],
+        facing:    'environment',
+        lastText:  null,
+        lastTime:  0,
+        /* last detected points — painted for ~500 ms after detection */
+        hlPoints:  null,
+        hlExpiry:  0,
+    };
+
+    /* ── lazy-load ZXing from CDN ───────────────────────────── */
+    function loadZXing(cb) {
+        if (window.ZXing) { cb(); return; }
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+        s.onload  = cb;
+        s.onerror = function () {
+            showError('Could not load the barcode library. Check your internet connection.');
+        };
+        document.head.appendChild(s);
+    }
+
+    /* ── UI helpers ─────────────────────────────────────────── */
+    function setStatus(type, text, icon) {
+        var el = document.getElementById('scanner-status');
+        if (!el) return;
+        var cls = { warning:'is-warning', success:'is-success', danger:'is-danger', info:'is-info' };
+        el.className = 'tag is-medium ' + (cls[type] || 'is-warning');
+        el.innerHTML = '<span class="icon"><i class="mdi ' + (icon || 'mdi-camera-off') + '"></i></span>'
+                     + '<span>' + text + '</span>';
+    }
+
+    function showError(msg) {
+        var el = document.getElementById('scanner-error');
+        if (!el) return;
+        el.textContent = msg;
+        el.style.display = '';
+    }
+
+    function hideError() {
+        var el = document.getElementById('scanner-error');
+        if (el) el.style.display = 'none';
+    }
+
+    /* ── camera start ───────────────────────────────────────── */
+    window.scannerStart = function () {
+        hideError();
+
+        /* Secure-context guard (getUserMedia is blocked on plain HTTP outside localhost) */
+        if (!window.isSecureContext) {
+            setStatus('danger', 'HTTPS required', 'mdi-lock-alert');
+            showError('Camera access requires a secure context (HTTPS or localhost). '
+                    + 'If you are testing locally, use http://localhost instead of an IP address.');
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setStatus('danger', 'Camera API unavailable', 'mdi-alert');
+            showError('navigator.mediaDevices.getUserMedia is not available in this browser or context.');
+            return;
+        }
+
+        setStatus('info', 'Initialising…', 'mdi-loading mdi-spin');
+
+        loadZXing(function () {
+            S.reader = new ZXing.MultiFormatReader();
+
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: S.facing,
+                    width:  { ideal: 1280 },
+                    height: { ideal: 720  },
+                },
+            }).then(function (stream) {
+                S.stream = stream;
+
+                var video = document.getElementById('scanner-video');
+                video.srcObject = stream;
+
+                /* wait for first frame metadata before sizing the canvas */
+                video.addEventListener('loadedmetadata', function () {
+                    var canvas = document.getElementById('scanner-canvas');
+                    canvas.width  = video.videoWidth  || 640;
+                    canvas.height = video.videoHeight || 480;
+
+                    document.getElementById('scanner-placeholder').style.display = 'none';
+                    document.getElementById('scanner-brackets').style.display    = 'block';
+                    document.getElementById('btn-start').style.display           = 'none';
+                    document.getElementById('btn-stop').style.display            = '';
+                    document.getElementById('btn-flip').style.display            = '';
+                    setStatus('success', 'Scanning…', 'mdi-barcode-scan');
+
+                    S.scanning = true;
+                    renderLoop();
+                }, { once: true });
+
+                video.play().catch(function (e) { console.warn('video.play():', e); });
+
+            }).catch(function (e) {
+                console.error('getUserMedia error:', e);
+                var msg = {
+                    NotAllowedError:  'Camera permission denied. Please allow camera access and try again.',
+                    NotFoundError:    'No camera found on this device.',
+                    NotSupportedError:'Camera is not supported in this context.',
+                    NotReadableError: 'Camera is already in use by another application.',
+                }[e.name] || ('Camera error: ' + e.message);
+                setStatus('danger', 'Camera error', 'mdi-alert');
+                showError(msg);
+            });
+        });
+    };
+
+    /* ── camera stop ────────────────────────────────────────── */
+    window.scannerStop = function () {
+        S.scanning = false;
+        if (S.rafId)  { cancelAnimationFrame(S.rafId); S.rafId = null; }
+        if (S.stream) { S.stream.getTracks().forEach(function (t) { t.stop(); }); S.stream = null; }
+
+        var video  = document.getElementById('scanner-video');
+        var canvas = document.getElementById('scanner-canvas');
+        if (video)  { video.srcObject = null; }
+        if (canvas) { canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
+
+        document.getElementById('scanner-placeholder').style.display = '';
+        document.getElementById('scanner-brackets').style.display    = 'none';
+        document.getElementById('btn-start').style.display           = '';
+        document.getElementById('btn-stop').style.display            = 'none';
+        document.getElementById('btn-flip').style.display            = 'none';
+        setStatus('warning', 'Camera Inactive', 'mdi-camera-off');
+    };
+
+    window.scannerFlip = function () {
+        var was = S.scanning;
+        scannerStop();
+        S.facing = S.facing === 'environment' ? 'user' : 'environment';
+        if (was) { setTimeout(scannerStart, 200); }
+    };
+
+    window.scannerClearResults = function () {
+        S.results = []; S.lastText = null;
+        var el  = document.getElementById('scanner-results');
+        var cnt = document.getElementById('results-count');
+        if (el)  el.innerHTML = '<p class="has-text-grey has-text-centered is-size-7">No barcodes scanned yet.</p>';
+        if (cnt) cnt.style.display = 'none';
+    };
+
+    window.scannerCopyResult = function (text) {
+        if (navigator.clipboard) { navigator.clipboard.writeText(text).catch(function () {}); }
+        var n = document.createElement('div');
+        n.className = 'notification is-success is-light p-2 is-size-7';
+        n.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;';
+        n.textContent = 'Copied!';
+        document.body.appendChild(n);
+        setTimeout(function () { n.remove(); }, 1400);
+    };
+
+    /* ── render loop (rAF) ──────────────────────────────────── */
+    function renderLoop() {
+        if (!S.scanning) return;
+
+        var video  = document.getElementById('scanner-video');
+        var canvas = document.getElementById('scanner-canvas');
+
+        if (!video || !canvas) return;
+
+        /* resize canvas if video dimensions changed (e.g. after flip) */
+        if (video.videoWidth && (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)) {
+            canvas.width  = video.videoWidth;
+            canvas.height = video.videoHeight;
+        }
+
+        if (video.readyState >= 2 /* HAVE_CURRENT_DATA */) {
+            var ctx = canvas.getContext('2d');
+
+            /* 1. blit video frame */
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            /* 2. try to decode — uses the canvas pixel data just drawn */
+            if (S.reader) {
+                try {
+                    var lum    = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+                    var bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(lum));
+                    var result = S.reader.decode(bitmap);
+                    if (result) { onDetected(ctx, result); }
+                } catch (e) {
+                    /* NotFoundException on every frame without a barcode — expected */
+                    if (!(e instanceof ZXing.NotFoundException)) {
+                        console.warn('ZXing decode error:', e);
+                    }
+                }
+            }
+
+            /* 3. paint AR highlight while it's still "fresh" */
+            if (S.hlPoints && Date.now() < S.hlExpiry) {
+                drawHighlight(ctx, S.hlPoints);
+            }
+        }
+
+        S.rafId = requestAnimationFrame(renderLoop);
+    }
+
+    /* ── barcode detected ───────────────────────────────────── */
+    function onDetected(ctx, result) {
+        var text   = result.getText();
+        var format = String(result.getBarcodeFormat ? result.getBarcodeFormat() : 'BARCODE');
+        var pts    = result.getResultPoints ? result.getResultPoints() : null;
+        var now    = Date.now();
+
+        /* store highlight points for the next ~500 ms of frames */
+        if (pts && pts.length) { S.hlPoints = pts; S.hlExpiry = now + 500; }
+        drawHighlight(ctx, pts);
+
+        /* debounce: ignore same code within 2 s */
+        if (text === S.lastText && now - S.lastTime < 2000) return;
+        S.lastText = text;
+        S.lastTime = now;
+
+        S.results.unshift({ format: format, text: text, time: new Date().toLocaleTimeString() });
+        if (S.results.length > 30) S.results.pop();
+        refreshResultsList();
+
+        /* pulse the CSS brackets */
+        var br = document.getElementById('scanner-brackets');
+        if (br) {
+            br.classList.add('scanner-pulse');
+            setTimeout(function () { br.classList.remove('scanner-pulse'); }, 400);
+        }
+    }
+
+    function drawHighlight(ctx, pts) {
+        if (!pts || pts.length < 2) return;
+        ctx.save();
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth   = 3;
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur  = 14;
+        ctx.fillStyle   = 'rgba(0,229,255,0.12)';
+        ctx.beginPath();
+        ctx.moveTo(pts[0].getX(), pts[0].getY());
+        for (var i = 1; i < pts.length; i++) { ctx.lineTo(pts[i].getX(), pts[i].getY()); }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    /* ── results list ───────────────────────────────────────── */
+    function esc(s) {
+        return String(s)
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function refreshResultsList() {
+        var el  = document.getElementById('scanner-results');
+        var cnt = document.getElementById('results-count');
+        if (!el) return;
+        if (cnt) { cnt.textContent = S.results.length; cnt.style.display = ''; }
+        el.innerHTML = S.results.map(function (r, i) {
+            var safeJs = esc(r.text).replace(/'/g,'&#39;');
+            return '<div class="box p-3 mb-2" style="' + (i === 0 ? 'border-left:3px solid #00e5ff;' : '') + '">'
+                + '<div class="level is-mobile" style="gap:0.5rem;">'
+                + '<div class="level-left" style="flex:1;min-width:0;">'
+                + '<div style="min-width:0;">'
+                + '<p class="has-text-weight-semibold is-size-7" style="word-break:break-all;">' + esc(r.text) + '</p>'
+                + '<p class="is-size-7 has-text-grey mt-1">' + esc(r.format) + ' &bull; ' + esc(r.time) + '</p>'
+                + '</div></div>'
+                + '<div class="level-right" style="flex-shrink:0;">'
+                + '<button class="button is-small is-ghost" title="Copy" onclick="scannerCopyResult(\'' + safeJs + '\')">'
+                + '<span class="icon"><i class="mdi mdi-content-copy"></i></span>'
+                + '</button></div></div></div>';
+        }).join('');
+    }
+
+    /* ── stop camera on HTMX navigation ────────────────────── */
+    document.body.addEventListener('htmx:beforeSwap', function cleanup() {
+        if (S.scanning) scannerStop();
+        document.body.removeEventListener('htmx:beforeSwap', cleanup);
+    });
+}());
+</script>

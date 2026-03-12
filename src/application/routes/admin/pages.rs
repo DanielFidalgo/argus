@@ -41,6 +41,11 @@ fn make_base_context() -> BaseTemplateContext {
             href: "/admin/pages/status",
             icon: "mdi-desktop-mac",
         },
+        SidebarItem {
+            label: "Scanner",
+            href: "/admin/pages/scanner",
+            icon: "mdi-qrcode-scan",
+        },
     ];
 
     let navbar_items = vec![
@@ -53,6 +58,11 @@ fn make_base_context() -> BaseTemplateContext {
             label: "Status",
             href: "/admin/pages/status",
             icon: "mdi-desktop-mac",
+        },
+        NavbarItem {
+            label: "Scanner",
+            href: "/admin/pages/scanner",
+            icon: "mdi-qrcode-scan",
         },
     ];
 
@@ -112,6 +122,18 @@ pub struct StatusPartialTmpl {
     service: String,
 }
 
+/// scanner page - full
+#[derive(Template, WebTemplate)]
+#[template(path = "pages/scanner.html")]
+pub struct ScannerTmpl {
+    _base: BaseTemplateContext,
+}
+
+/// scanner page - partial
+#[derive(Template, WebTemplate)]
+#[template(path = "pages/scanner_partial.html")]
+pub struct ScannerPartialTmpl {}
+
 //
 // === Handlers ===
 //
@@ -139,6 +161,35 @@ pub async fn home(req: &Request) -> Response {
     } else {
         // Direct access - return full page with layout
         let template = HomeTmpl {
+            _base: make_base_context(),
+        };
+        match template.render() {
+            Ok(html) => Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "text/html; charset=utf-8")
+                .body(html),
+            Err(e) => Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("Template error: {}", e)),
+        }
+    }
+}
+
+#[handler]
+pub async fn scanner(req: &Request) -> Response {
+    if is_htmx_request(req) {
+        let template = ScannerPartialTmpl {};
+        match template.render() {
+            Ok(html) => Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "text/html; charset=utf-8")
+                .body(html),
+            Err(e) => Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("Template error: {}", e)),
+        }
+    } else {
+        let template = ScannerTmpl {
             _base: make_base_context(),
         };
         match template.render() {
